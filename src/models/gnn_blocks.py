@@ -21,7 +21,7 @@ Checkpoint naming (must match for strict=True loading):
 import torch
 from torch import nn
 import dgl
-from dgl.nn.pytorch import GATConv, GraphConv, MaxPooling
+from dgl.nn.pytorch import GATConv, GraphConv, AvgPooling
 
 
 class GATGCN_Block(nn.Module):
@@ -208,9 +208,12 @@ class GNNBlocks(nn.Module):
 
         self.do = nn.Dropout(dropout)
 
-        # Paper says "max-pooling layer" in text and "Maxpool" in diagram.
-        # Checkpoint has no pooling params, but paper textual evidence demands MaxPooling.
-        self.maxpool = MaxPooling()
+        # PAPER-vs-CODE-DISCREPANCY: Paper says "max-pooling layer" in text and
+        # "Maxpool" in diagram. However, official code (models.py L151) uses
+        # AvgPooling() despite naming the variable 'self.maxpool'. Since the
+        # checkpoint doesn't contain pooling parameters (both are parameter-free),
+        # we match the official code to reproduce trained model behavior.
+        self.maxpool = AvgPooling()
 
     def forward(self, g, feats):
         """Encode drug molecular graph through stacked GNNBlocks.

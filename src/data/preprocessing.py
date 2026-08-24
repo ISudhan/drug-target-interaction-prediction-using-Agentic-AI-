@@ -14,8 +14,10 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from rdkit import Chem
-from transformers import BertForMaskedLM, BertTokenizer
-import esm
+
+# NOTE: transformers (BertForMaskedLM, BertTokenizer) and esm are imported
+# lazily inside get_protbert_embedding() and target_graph_construct() to avoid
+# requiring these heavy packages for drug graph construction.
 
 
 def one_hot(char, dictionary): 
@@ -112,6 +114,8 @@ def get_protbert_embedding(data, device=None):
     if device is None:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         
+    from transformers import BertForMaskedLM, BertTokenizer
+
     embed = dict()
     tokenizer = BertTokenizer.from_pretrained('Rostlab/prot_bert_bfd', do_lower_case=False)
     model = BertForMaskedLM.from_pretrained("Rostlab/prot_bert_bfd").to(device)
@@ -160,7 +164,8 @@ def target_graph_construct(proteins, device=None):
     """
     if device is None:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        
+
+    import esm
     model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
     batch_converter = alphabet.get_batch_converter()
     model.to(device)
