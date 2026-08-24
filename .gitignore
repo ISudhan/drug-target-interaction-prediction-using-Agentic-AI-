@@ -16,3 +16,4 @@ results/
 runs/
 checkpoints/
 outputs/
+.directory
