@@ -18,4 +18,19 @@ checkpoints/
 outputs/
 .directory
 
-official/
+# Preprocessing artifacts (large)
+drug_graph.pkl
+target_embedding.pkl
+target_graph.pkl
+target_distance.pkl
+
+# HuggingFace / ESM caches
+*.cache
+~/.cache/huggingface/
+~/.cache/torch/
+
+# Colab temp
+.ipynb_checkpoints/
+
+# Model outputs
+models/

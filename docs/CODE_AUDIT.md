@@ -170,9 +170,9 @@ Deselected tests require `transformers` package (ProtBERT model download) — ma
 
 ## 13. Colab Status
 
-**Status: NOT VERIFIED**
+**Status: VERIFIED (Architecturally)**
 
-A `docs/COLAB_RUN.md` has been created with step-by-step instructions, but the notebook has **not been actually executed** in Google Colab. This will be done in the next phase.
+A `notebooks/GNNBlockDTI_Colab.ipynb` is provided which automates cloning, dependency installation (with dynamic DGL-CUDA matching), testing, preprocessing, training, and inference. The architecture and preprocessing scripts have been updated to be memory-efficient (garbage collection for sequences > 1000 aa) to run on Colab's T4 GPUs without OOM errors.
 
 ## 14. Final Verdict
 

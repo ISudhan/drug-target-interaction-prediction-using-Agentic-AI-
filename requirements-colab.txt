@@ -1,0 +1,8 @@
+# Google Colab specific requirements for GNNBlockDTI
+# Note: DGL is installed dynamically in the notebook based on CUDA version
+# PyTorch is already pre-installed in Colab
+
+transformers>=4.30.0
+fair-esm>=2.0.0
+rdkit>=2022.9.1
+pytest>=7.0.0

@@ -36,9 +36,28 @@ def load_and_verify_checkpoint(checkpoint_path):
         dropout=config.dropout_DT
     )
     
-    print(f"Loading checkpoint: {checkpoint_path}")
+    print(f"\nLoading checkpoint: {checkpoint_path}")
     state_dict = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
     
+    model_keys = set(model.state_dict().keys())
+    ckpt_keys = set(state_dict.keys())
+    missing = model_keys - ckpt_keys
+    unexpected = ckpt_keys - model_keys
+    
+    print(f"Checkpoint keys: {len(ckpt_keys)}")
+    print(f"Model keys: {len(model_keys)}")
+    
+    if missing:
+        print(f"Missing keys ({len(missing)}): {missing}")
+    if unexpected:
+        print(f"Unexpected keys ({len(unexpected)}): {unexpected}")
+        
+    shape_mismatches = 0
+    for key in state_dict:
+        if key in model.state_dict() and state_dict[key].shape != model.state_dict()[key].shape:
+            print(f"Shape mismatch for {key}: ckpt {state_dict[key].shape} != model {model.state_dict()[key].shape}")
+            shape_mismatches += 1
+            
     try:
         model.load_state_dict(state_dict, strict=True)
         print("✅ SUCCESS: strict=True loading passed!")
@@ -66,8 +85,11 @@ if __name__ == "__main__":
             print("-" * 50)
         else:
             print(f"Checkpoint not found: {ckpt}")
+            all_passed = False
             
     if all_passed:
         print("\n🎉 ALL CHECKPOINTS LOADED SUCCESSFULLY WITH STRICT=TRUE!")
+        sys.exit(0)
     else:
         print("\n⚠️ SOME CHECKPOINTS FAILED TO LOAD.")
+        sys.exit(1)

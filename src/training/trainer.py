@@ -48,7 +48,7 @@ def test(model, data_iter, loss_fn, device):
     return test_loss, metrics
 
 
-def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, compare, device, name):
+def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, compare, device, name, save_dir='models'):
     """Train the model.
     
     Args:
@@ -62,6 +62,7 @@ def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, 
         compare: 'max' or 'min' for model selection based on primary metric
         device: Torch device
         name: Name for saving checkpoints
+        save_dir: Directory to save model checkpoints
         
     Returns:
         tuple: (train_losses, valid_losses, valid_metrics, best_test_metrics)
@@ -77,8 +78,8 @@ def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, 
     
     metrs_best = 10000 if compare == "min" else -10
     
-    if not os.path.exists('models'):
-        os.makedirs('models')
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
         
     print("--------------------------------------", name.replace('_', '——'))
     
@@ -121,7 +122,7 @@ def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, 
         if is_better:
             metrs_best = metrs
             best_epoch = epoch + 1
-            torch.save(model.state_dict(), f"models/{name}.pth")
+            torch.save(model.state_dict(), os.path.join(save_dir, f"{name}.pth"))
             print(f'The best model in epoch {epoch+1} has been saved!!! ')
             
             _, test_metric = test(model, test_iter, loss_fn, device)

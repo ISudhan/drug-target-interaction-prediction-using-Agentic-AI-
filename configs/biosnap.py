@@ -35,6 +35,7 @@ class BIOSNAPConfig:
     # Paths
     dataset_name: str = "BIOSNAP"
     data_dir: str = os.path.join("official/dataset", "BIOSNAP")
+    preprocessed_dir: str = data_dir  # By default, preprocessed features are in the same dir
     random_cv_dir: str = os.path.join(data_dir, "random_CV5")
     
     seed: int = 1234

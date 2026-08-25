@@ -10,10 +10,10 @@ Paper: "Efficient substructure feature encoding based on graph neural network bl
 | Official File | Reconstructed File(s) | Role |
 |---|---|---|
 | `models.py` | `src/models/gnn_blocks.py`, `src/models/protein.py`, `src/models/model.py` | Model architecture |
-| `data_process.py` | `src/data/preprocessing.py` | Data preprocessing |
+| `data_process.py` | `src/data/preprocessing.py`, `scripts/preprocess_biosnap.py` | Data preprocessing |
 | `main.py` | `scripts/train.py`, `src/data/dataset.py` | Training pipeline + dataset class |
 | `Trainer.py` | `src/training/trainer.py`, `src/evaluation/evaluate.py` | Training loop + metrics |
-| `test.py` | `scripts/test.py` | Evaluation script |
+| `test.py` | `scripts/test_biosnap.py` | Evaluation script |
 
 ---
 
