@@ -76,21 +76,22 @@ def main():
 
     # 3. ESM-1b Contact Maps
     dist_out = os.path.join(data_dir, "target_distance.pkl")
-    if not os.path.exists(dist_out) or args.force:
-        print("\n--- Step 3: ESM-1b Contact Maps ---")
-        target_distance = target_graph_construct(
-            proteins,
-            device=device,
-            output_path=dist_out,
-            save_every=10
-            )
-        with open(dist_out, 'wb') as f:
-            pickle.dump(target_distance, f)
-        print(f"Saved {len(target_distance)} contact maps to {dist_out}")
-    else:
-        print(f"\n--- Step 3: ESM-1b Contact Maps --- [SKIPPED, exists]")
-        with open(dist_out, 'rb') as f:
-            target_distance = pickle.load(f)
+
+    print("\n--- Step 3: ESM-1b Contact Maps ---")
+
+    # Always call target_graph_construct().
+    # It automatically resumes from target_distance.pkl.
+    target_distance = target_graph_construct(
+        proteins,
+        device=device,
+        output_path=dist_out,
+        save_every=10
+    )
+
+    with open(dist_out, 'wb') as f:
+        pickle.dump(target_distance, f)
+
+    print(f"Saved {len(target_distance)} contact maps to {dist_out}")
             
     if str(device) != 'cpu':
         torch.cuda.empty_cache()

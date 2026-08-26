@@ -102,6 +102,30 @@ def get_drug_graph(ligands):
     for d in tqdm(ligands.keys(), desc="Drug Graphs"):
         try:
             XD[str(d)] = smi_2_graph(ligands[d])
+        except torch.cuda.OutOfMemoryError:
+            print(
+                f"\nCUDA OOM while processing {pro_id} "
+                f"(length={len(seq)})"
+            )
+
+            # Save every successfully processed protein
+            # before the failed protein.
+            if output_path is not None:
+                with open(output_path, "wb") as f:
+                    pickle.dump(target_distance, f)
+
+                print(
+                    f"Saved checkpoint before OOM: "
+                    f"{len(target_distance)} proteins"
+                )
+
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+
+            gc.collect()
+
+            raise
+
         except Exception as e:
             print(f"Failed to process SMILES for {d}: {ligands[d]} - {e}")
 
@@ -219,7 +243,7 @@ def target_graph_construct(proteins, device=None, output_path=None, save_every=1
             # ---------------------------------------------------------
             # Short proteins
             # ---------------------------------------------------------
-            if len(seq) <= 1000:
+            if len(seq) <= 500:
 
                 data = [(pro_id, seq)]
 
