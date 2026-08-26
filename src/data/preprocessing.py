@@ -437,27 +437,56 @@ def get_uv(adj):
 
     Uses threshold of > 0.5 for contact edges.
     Always includes sequential backbone edges (i-1, i+1) with weight 1.0.
+
+    Uses vectorized PyTorch operations instead of nested Python loops.
     """
-    u, v = [], []
-    weight = []
-    m, n = len(adj), len(adj[0])
+    adj = torch.as_tensor(adj)
 
-    for i in range(m):
-        for j in range(n):
-            # Sequential edges always exist with weight 1.0
-            if j == i - 1 or j == i + 1:
-                u.append(i)
-                v.append(j)
-                weight.append(1.0)
-                continue
+    n = adj.shape[0]
 
-            # Contact edges based on ESM probability threshold
-            if adj[i][j] > 0.5:
-                u.append(i)
-                v.append(j)
-                weight.append(adj[i][j])
+    # Contact edges: probability > 0.5
+    contact_u, contact_v = torch.nonzero(
+        adj > 0.5,
+        as_tuple=True
+    )
 
-    return u, v, weight
+    contact_weight = adj[contact_u, contact_v].float()
+
+    # Backbone edges: i -> i+1 and i+1 -> i
+    backbone_u = torch.arange(n - 1, dtype=torch.long)
+    backbone_v = backbone_u + 1
+
+    backbone_u = torch.cat([
+        backbone_u,
+        backbone_v
+    ])
+
+    backbone_v = torch.cat([
+        backbone_v[:n - 1],
+        backbone_u[:n - 1]
+    ])
+
+    # Remove backbone edges from contact edges.
+    # Backbone edges must always have weight 1.0.
+    non_backbone = torch.abs(contact_u - contact_v) != 1
+
+    contact_u = contact_u[non_backbone]
+    contact_v = contact_v[non_backbone]
+    contact_weight = contact_weight[non_backbone]
+
+    # Combine backbone + contact edges
+    u = torch.cat([backbone_u, contact_u])
+    v = torch.cat([backbone_v, contact_v])
+
+    weight = torch.cat([
+        torch.ones(
+            backbone_u.shape[0],
+            dtype=torch.float32
+        ),
+        contact_weight
+    ])
+
+    return u.tolist(), v.tolist(), weight.tolist()
 
 
 def get_target_graph(data, distance):
