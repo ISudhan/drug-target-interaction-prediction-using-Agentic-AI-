@@ -122,7 +122,7 @@ def train(model, epochs, train_iter, valid_iter, test_iter, loss_fn, optimizer, 
         if is_better:
             metrs_best = metrs
             best_epoch = epoch + 1
-            torch.save(model.state_dict(), os.path.join(save_dir, f"{name}.pth"))
+            torch.save(model.state_dict(), os.path.join(save_dir, f"{name}.pt"))
             print(f'The best model in epoch {epoch+1} has been saved!!! ')
             
             _, test_metric = test(model, test_iter, loss_fn, device)

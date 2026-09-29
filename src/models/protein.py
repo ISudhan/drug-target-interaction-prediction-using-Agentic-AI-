@@ -116,41 +116,64 @@ class MultiscaleCNN(nn.Module):
         return X_co
 
 
-class FeatureFusion(nn.Module):
-    """Protein Feature Fusion module.
-
-    Fuses CNN sequential features and WGCN spatial features.
-
-    Architecture:
-        x1 (CNN) → Linear(size1 → hid_size) → L2-norm
-        x2 (WGCN) → Linear(size2 → hid_size) → L2-norm
-        x_co = x1 + x2
-        AdaptiveMaxPool1d → final protein representation
-    """
+class ConcatenationFusion(nn.Module):
+    """Concatenation Fusion module."""
     def __init__(self, size1, size2, hid_size):
-        super(FeatureFusion, self).__init__()
+        super(ConcatenationFusion, self).__init__()
         self.fc1 = nn.Linear(size1, hid_size)
         self.fc2 = nn.Linear(size2, hid_size)
-
         self.maxpool = nn.AdaptiveMaxPool1d(1)
 
     def forward(self, x1, x2):
-        """
-        Args:
-            x1: CNN sequence features [batch, seq_len, size1]
-            x2: WGCN graph features [batch, num_nodes, size2] 
-                Note: num_nodes usually matches seq_len
-        """
         x1 = self.fc1(x1)
         x2 = self.fc2(x2)
         x1 = F.normalize(x1, p=2, dim=-1)
         x2 = F.normalize(x2, p=2, dim=-1)
         
-        # Element-wise addition
-        xco = x1 + x2
-        
-        # Global max pooling over sequence length
-        # Permute to [batch, hid_size, seq_len] for AdaptiveMaxPool1d
+        xco = torch.cat([x1, x2], dim=-1)
         op = self.maxpool(xco.permute(0, 2, 1)).squeeze(-1)
+        return op
 
+
+class BilinearFusion(nn.Module):
+    """Bilinear Fusion module."""
+    def __init__(self, size1, size2, hid_size):
+        super(BilinearFusion, self).__init__()
+        self.fc1 = nn.Linear(size1, hid_size)
+        self.fc2 = nn.Linear(size2, hid_size)
+        self.bilinear = nn.Bilinear(hid_size, hid_size, hid_size)
+        self.maxpool = nn.AdaptiveMaxPool1d(1)
+
+    def forward(self, x1, x2):
+        x1 = self.fc1(x1)
+        x2 = self.fc2(x2)
+        x1 = F.normalize(x1, p=2, dim=-1)
+        x2 = F.normalize(x2, p=2, dim=-1)
+        
+        xco = self.bilinear(x1, x2)
+        op = self.maxpool(xco.permute(0, 2, 1)).squeeze(-1)
+        return op
+
+
+class GatedFusion(nn.Module):
+    """Gated Fusion module."""
+    def __init__(self, size1, size2, hid_size):
+        super(GatedFusion, self).__init__()
+        self.fc1 = nn.Linear(size1, hid_size)
+        self.fc2 = nn.Linear(size2, hid_size)
+        self.gate = nn.Sequential(
+            nn.Linear(hid_size * 2, hid_size),
+            nn.Sigmoid()
+        )
+        self.maxpool = nn.AdaptiveMaxPool1d(1)
+
+    def forward(self, x1, x2):
+        x1 = self.fc1(x1)
+        x2 = self.fc2(x2)
+        x1 = F.normalize(x1, p=2, dim=-1)
+        x2 = F.normalize(x2, p=2, dim=-1)
+        
+        g = self.gate(torch.cat([x1, x2], dim=-1))
+        xco = g * x1 + (1 - g) * x2
+        op = self.maxpool(xco.permute(0, 2, 1)).squeeze(-1)
         return op

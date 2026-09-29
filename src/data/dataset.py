@@ -60,8 +60,10 @@ def collate_fn(batch):
     D_G = dgl.batch(D_graphs)
     
     # Stack sequence embeddings: [batch_size, seq_len, embed_dim]
-    T = torch.cat([T0[idx].unsqueeze(0) for idx in range(len(T0))], 0)
-    
+    max_len = max([t.shape[0] for t in T0])
+    T = torch.zeros(len(T0), max_len, T0[0].shape[1])
+    for i, t in enumerate(T0):
+        T[i, :t.shape[0], :] = t    
     # Batch target contact graphs
     T_G = dgl.batch(T_graphs)
     

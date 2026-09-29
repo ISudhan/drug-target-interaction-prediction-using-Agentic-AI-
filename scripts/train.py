@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--device", type=str, default=None, help="Device to use (cuda/cpu)")
     parser.add_argument("--data_dir", type=str, default=None, help="Path to dataset directory")
     parser.add_argument("--save_dir", type=str, default="models", help="Directory to save models")
+    parser.add_argument("--fusion", type=str, default="concat", choices=["concat", "bilinear", "gated"], help="Fusion mechanism")
     args = parser.parse_args()
 
     config = BIOSNAPConfig()
@@ -98,7 +99,8 @@ def main():
         Target_len=config.target_len,
         Target_len1=config.target_len1,
         hid_size=config.hid_size,
-        dropout=config.dropout_DT
+        dropout=config.dropout_DT,
+        fusion_type=args.fusion
     )
 
     loss_fn = nn.CrossEntropyLoss()

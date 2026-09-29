@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from .gnn_blocks import GNNBlocks
-from .protein import WGCN, MultiscaleCNN, FeatureFusion
+from .protein import WGCN, MultiscaleCNN, ConcatenationFusion, BilinearFusion, GatedFusion
 
 class GNNBlockDTI(nn.Module):
     """GNNBlockDTI: Efficient substructure feature encoding based on graph 
@@ -13,7 +13,7 @@ class GNNBlockDTI(nn.Module):
         Protein branch (MultiscaleCNN + WGCN): Encodes sequence and contact map → protein embedding
         Classifier: MLP concatenating drug and protein embeddings → DT interaction prediction
     """
-    def __init__(self, net_D, net_T, net_T1, Drug_len, Target_len, Target_len1, hid_size, dropout=0.2):
+    def __init__(self, net_D, net_T, net_T1, Drug_len, Target_len, Target_len1, hid_size, dropout=0.2, fusion_type='concat'):
         """
         Args:
             net_D: Drug encoding module (GNNBlocks)
@@ -24,17 +24,28 @@ class GNNBlockDTI(nn.Module):
             Target_len1: Output dim of WGCN (256)
             hid_size: Fused protein representation dimension (384)
             dropout: Dropout rate (0.2)
+            fusion_type: Type of fusion to use ('concat', 'bilinear', 'gated')
         """
         super(GNNBlockDTI, self).__init__()
         self.net_D = net_D
         self.net_T = net_T
         self.net_T1 = net_T1
-        self.FF = FeatureFusion(Target_len, Target_len1, hid_size)
         
+        if fusion_type == 'concat':
+            self.FF = ConcatenationFusion(Target_len, Target_len1, hid_size)
+            protein_rep_size = hid_size * 2
+        elif fusion_type == 'bilinear':
+            self.FF = BilinearFusion(Target_len, Target_len1, hid_size)
+            protein_rep_size = hid_size
+        elif fusion_type == 'gated':
+            self.FF = GatedFusion(Target_len, Target_len1, hid_size)
+            protein_rep_size = hid_size
+        else:
+            raise ValueError(f"Unknown fusion_type: {fusion_type}")
+            
         # Classifier Network
-        # Input size: Drug_len (192) + hid_size (384) = 576
         self.pair_net = nn.Sequential(
-            nn.Linear(Drug_len + hid_size, 1024),
+            nn.Linear(Drug_len + protein_rep_size, 1024),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(1024, 1024),
@@ -71,8 +82,13 @@ class GNNBlockDTI(nn.Module):
         
         # Reshape WGCN output to match sequence structure
         # [total_nodes, dim] -> [batch, seq_len, dim]
-        # Assumes all graphs in batch have same number of nodes (seq_len)
-        T_x1 = T_x1.reshape(T_x.shape[0], -1, T_x1.shape[-1])
+        batch_num_nodes = T_G.batch_num_nodes().tolist()
+        T_x1_split = torch.split(T_x1, batch_num_nodes)
+        max_len = T_x.shape[1]
+        T_x1_padded = torch.zeros(len(batch_num_nodes), max_len, T_x1.shape[-1], device=T_x1.device)
+        for i, t in enumerate(T_x1_split):
+            T_x1_padded[i, :t.shape[0], :] = t
+        T_x1 = T_x1_padded
         
         # Feature fusion
         T_xco = self.FF(T_x, T_x1)
