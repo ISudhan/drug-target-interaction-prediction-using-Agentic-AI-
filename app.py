@@ -63,14 +63,13 @@ def load_model():
                         fusion_type='gated')
 
     model_path = 'models/GNNBlockDTI_BIOSNAP_CV0.pt'
+    weights_loaded = False
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
-        st.toast("✅ Trained weights loaded!", icon="✅")
-    else:
-        st.warning("Trained .pt file not found — using random weights.")
+        weights_loaded = True
 
     model.eval()
-    return model, device
+    return model, device, weights_loaded
 
 
 # ── Load cached known-dataset features (optional, for fast lookup) ───────────
@@ -126,8 +125,14 @@ def seq_to_target_graph(embedding: torch.Tensor):
 
 
 # ── UI ───────────────────────────────────────────────────────────────────────
-model, device = load_model()
+model, device, weights_loaded = load_model()
 drug_graphs, target_embeddings, target_graphs = load_dataset_cache()
+
+# Show status outside cached function
+if weights_loaded:
+    st.toast("✅ Trained weights loaded!", icon="✅")
+else:
+    st.warning("⚠️ Trained .pt file not found — using random weights.")
 
 st.divider()
 
