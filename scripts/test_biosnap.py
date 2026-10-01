@@ -22,11 +22,12 @@ def main():
     parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold (0-4) to use for test split")
     parser.add_argument("--device", type=str, default=None, help="Device to use (cuda/cpu)")
     parser.add_argument("--data_dir", type=str, default=None, help="Path to dataset directory")
+    parser.add_argument("--fusion", type=str, default="add", choices=["concat", "bilinear", "gated", "add"], help="Fusion mechanism")
     args = parser.parse_args()
     
     config = BIOSNAPConfig()
     
-    data_dir = args.data_dir if args.data_dir else os.path.join("official/dataset", args.task)
+    data_dir = args.data_dir if args.data_dir else os.path.join("data/dataset", args.task)
     device_str = args.device if args.device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
     device = torch.device(device_str)
     
@@ -78,7 +79,8 @@ def main():
         Target_len=config.target_len, 
         Target_len1=config.target_len1,
         hid_size=config.hid_size, 
-        dropout=config.dropout_DT
+        dropout=config.dropout_DT,
+        fusion_type=args.fusion
     )
     
     print(f"Loading checkpoint: {args.checkpoint}")

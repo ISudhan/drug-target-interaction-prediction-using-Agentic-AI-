@@ -77,7 +77,7 @@ Expected: All tests pass (except those skipped due to "slow" marker).
 Test the official checkpoint on fold 0 test split.
 
 ```bash
-!python scripts/test_biosnap.py --checkpoint official/pre_train_models/BIOSNAP_CV1.pth --fold 0
+!python scripts/test_biosnap.py --checkpoint models/BIOSNAP_CV1.pth --fold 0
 ```
 
 ---

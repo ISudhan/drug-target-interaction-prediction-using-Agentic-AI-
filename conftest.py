@@ -11,9 +11,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # ── Directories ──────────────────────────────────────────
 PROJECT_ROOT = os.path.dirname(__file__)
-OFFICIAL_DIR = os.path.join(PROJECT_ROOT, "official")
-CHECKPOINT_DIR = os.path.join(OFFICIAL_DIR, "pre_train_models")
-BIOSNAP_DIR = os.path.join(OFFICIAL_DIR, "dataset", "BIOSNAP")
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+CHECKPOINT_DIR = os.path.join(PROJECT_ROOT, "models")
+BIOSNAP_DIR = os.path.join(DATA_DIR, "dataset", "BIOSNAP")
 
 
 @pytest.fixture
@@ -22,8 +22,8 @@ def project_root():
 
 
 @pytest.fixture
-def official_dir():
-    return OFFICIAL_DIR
+def data_dir():
+    return DATA_DIR
 
 
 @pytest.fixture
@@ -79,7 +79,8 @@ def build_model(biosnap_config):
             Target_len=config.target_len,
             Target_len1=config.target_len1,
             hid_size=config.hid_size,
-            dropout=config.dropout_DT
+            dropout=config.dropout_DT,
+            fusion_type='add'
         )
         return model
     return _build

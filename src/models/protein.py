@@ -177,3 +177,25 @@ class GatedFusion(nn.Module):
         xco = g * x1 + (1 - g) * x2
         op = self.maxpool(xco.permute(0, 2, 1)).squeeze(-1)
         return op
+
+
+class FeatureFusion(nn.Module):
+    """Protein Feature Fusion module (Element-wise Addition).
+    Used in official checkpoints.
+    """
+    def __init__(self, size1, size2, hid_size):
+        super(FeatureFusion, self).__init__()
+        self.fc1 = nn.Linear(size1, hid_size)
+        self.fc2 = nn.Linear(size2, hid_size)
+        self.maxpool = nn.AdaptiveMaxPool1d(1)
+
+    def forward(self, x1, x2):
+        x1 = self.fc1(x1)
+        x2 = self.fc2(x2)
+        x1 = F.normalize(x1, p=2, dim=-1)
+        x2 = F.normalize(x2, p=2, dim=-1)
+        
+        xco = x1 + x2
+        op = self.maxpool(xco.permute(0, 2, 1)).squeeze(-1)
+        return op
+

@@ -4,6 +4,8 @@ env/
 .venv/
 venv/
 bin/
+.agents/
+.claude/
 .directory
 .DS_Store
 .ipynb_checkpoints/

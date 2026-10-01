@@ -3,7 +3,7 @@
 These are the authoritative checkpoint tests — they use REAL official checkpoints
 with strict=True loading. No mock DGL classes.
 
-Requires: official/pre_train_models/*.pth
+Requires: models/train_models/*.pth
 """
 import os
 import pytest

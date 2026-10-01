@@ -71,9 +71,9 @@ def load_and_verify_checkpoint(checkpoint_path):
 
 if __name__ == "__main__":
     checkpoints = [
-        "official/pre_train_models/BIOSNAP_CV1.pth",
-        "official/pre_train_models/BIOSNAP_unseen_D.pth",
-        "official/pre_train_models/BIOSNAP_unseen_T.pth"
+        "models/BIOSNAP_CV1.pth",
+        "models/BIOSNAP_D.pth",
+        "models/BIOSNAP_T.pth"
     ]
     
     all_passed = True

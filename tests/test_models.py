@@ -42,7 +42,7 @@ class TestGNNBlockDTIStructure:
     def test_has_feature_fusion(self, build_model):
         model = build_model()
         assert hasattr(model, 'FF'), "Missing FeatureFusion module"
-        assert isinstance(model.FF, FeatureFusion)
+        assert isinstance(model.FF, (FeatureFusion))
 
     def test_has_pair_net(self, build_model):
         model = build_model()

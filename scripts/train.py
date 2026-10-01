@@ -25,7 +25,7 @@ def main():
     parser.add_argument("--device", type=str, default=None, help="Device to use (cuda/cpu)")
     parser.add_argument("--data_dir", type=str, default=None, help="Path to dataset directory")
     parser.add_argument("--save_dir", type=str, default="models", help="Directory to save models")
-    parser.add_argument("--fusion", type=str, default="concat", choices=["concat", "bilinear", "gated"], help="Fusion mechanism")
+    parser.add_argument("--fusion", type=str, default="concat", choices=["concat", "bilinear", "gated", "add"], help="Fusion mechanism")
     args = parser.parse_args()
 
     config = BIOSNAPConfig()
@@ -35,7 +35,7 @@ def main():
     if args.batch_size is not None: config.batch_size = args.batch_size
     if args.lr is not None: config.lr = args.lr
 
-    data_dir = args.data_dir if args.data_dir else os.path.join("official/dataset", args.task)
+    data_dir = args.data_dir if args.data_dir else os.path.join("data/dataset", args.task)
     device_str = args.device if args.device else ('cuda:0' if torch.cuda.is_available() else 'cpu')
     device = torch.device(device_str)
 

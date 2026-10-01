@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--force", action="store_true", help="Force recomputation even if files exist")
     args = parser.parse_args()
     
-    data_dir = args.data_dir if args.data_dir else os.path.join("official/dataset", args.task)
+    data_dir = args.data_dir if args.data_dir else os.path.join("data/dataset", args.task)
     device = torch.device(args.device)
     
     print(f"=== BIOSNAP Preprocessing ===")

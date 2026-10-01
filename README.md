@@ -351,7 +351,7 @@ pip install -r requirements.txt
 
 Converts raw SMILES strings and protein sequences into model-ready features.
 
-**Required input files** (place in `official/dataset/BIOSNAP/`):
+**Required input files** (place in `data/dataset/BIOSNAP/`):
 - `drug_smi_raw.pkl` — `dict[drug_id → smiles_string]`
 - `prot_seq_raw.pkl` — `dict[protein_id → amino_acid_sequence]`
 
@@ -362,7 +362,7 @@ python scripts/preprocess_biosnap.py --device cuda
 | Flag | Default | Description |
 |---|---|---|
 | `--task` | `BIOSNAP` | Dataset name |
-| `--data_dir` | `official/dataset/BIOSNAP` | Path to raw data directory |
+| `--data_dir` | `data/dataset/BIOSNAP` | Path to raw data directory |
 | `--device` | `cuda` if available | `cuda` or `cpu` |
 | `--force` | `False` | Recompute even if output `.pkl` files already exist |
 
@@ -398,7 +398,7 @@ python scripts/train.py \
 | `--lr` | `5e-4` (from config) | Learning rate (Adam) |
 | `--fusion` | `concat` | Protein fusion strategy: `concat`, `bilinear`, `gated` |
 | `--device` | auto-detect | Target device (`cuda:0`, `cpu`) |
-| `--data_dir` | `official/dataset/BIOSNAP` | Preprocessed feature directory |
+| `--data_dir` | `data/dataset/BIOSNAP` | Preprocessed feature directory |
 | `--save_dir` | `models/` | Checkpoint output directory |
 
 **Model selection:** The checkpoint with the best **validation AUROC** is saved. Test metrics are logged whenever a new best is found.

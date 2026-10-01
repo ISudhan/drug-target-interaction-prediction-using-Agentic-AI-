@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from .gnn_blocks import GNNBlocks
-from .protein import WGCN, MultiscaleCNN, ConcatenationFusion, BilinearFusion, GatedFusion
+from .protein import WGCN, MultiscaleCNN, ConcatenationFusion, BilinearFusion, GatedFusion, FeatureFusion
 
 class GNNBlockDTI(nn.Module):
     """GNNBlockDTI: Efficient substructure feature encoding based on graph 
@@ -39,6 +39,9 @@ class GNNBlockDTI(nn.Module):
             protein_rep_size = hid_size
         elif fusion_type == 'gated':
             self.FF = GatedFusion(Target_len, Target_len1, hid_size)
+            protein_rep_size = hid_size
+        elif fusion_type == 'add':
+            self.FF = FeatureFusion(Target_len, Target_len1, hid_size)
             protein_rep_size = hid_size
         else:
             raise ValueError(f"Unknown fusion_type: {fusion_type}")
