@@ -18,7 +18,8 @@ from configs.biosnap import BIOSNAPConfig
 def main():
     parser = argparse.ArgumentParser(description="Train GNNBlockDTI model")
     parser.add_argument("--task", type=str, default="BIOSNAP", help="Dataset/Task name")
-    parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold (0-4)")
+    parser.add_argument("--split", type=str, default="random", choices=["random", "unseen_drug", "unseen_target"], help="Data split to use")
+    parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold (0-4) used if split is random")
     parser.add_argument("--epochs", type=int, default=None, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=None, help="Batch size")
     parser.add_argument("--lr", type=float, default=None, help="Learning rate")
@@ -56,15 +57,34 @@ def main():
         print(f"Error loading features: {e}. Please run preprocessing first.")
         sys.exit(1)
 
-    print(f"Loading CV fold {args.fold} splits...")
-    cv_path = os.path.join(data_dir, "random_CV5", f"data_CV{args.fold}.pkl")
-    try:
-        with open(cv_path, 'rb') as f:
-            data = pickle.load(f)
-        train_data, valid_data, test_data = data
-    except FileNotFoundError as e:
-        print(f"Error loading fold data: {e}")
-        sys.exit(1)
+    print(f"Loading {args.split} split...")
+    if args.split == "random":
+        cv_path = os.path.join(data_dir, "random_CV5", f"data_CV{args.fold}.pkl")
+        try:
+            with open(cv_path, 'rb') as f:
+                data = pickle.load(f)
+            train_data, valid_data, test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading fold data: {e}")
+            sys.exit(1)
+    elif args.split == "unseen_drug":
+        path = os.path.join(data_dir, "full_data_unseen_D.pkl")
+        try:
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            train_data, valid_data, test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading unseen drug data: {e}")
+            sys.exit(1)
+    elif args.split == "unseen_target":
+        path = os.path.join(data_dir, "full_data_unseen_T.pkl")
+        try:
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            train_data, valid_data, test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading unseen target data: {e}")
+            sys.exit(1)
 
     print(f"Data train: {len(train_data)}")
     print(f"Data valid: {len(valid_data)}")
@@ -106,7 +126,8 @@ def main():
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
-    save_name = f"GNNBlockDTI_{args.task}_CV{args.fold}"
+    split_suffix = f"CV{args.fold}" if args.split == "random" else args.split
+    save_name = f"GNNBlockDTI_{args.task}_{split_suffix}_{args.fusion}"
 
     print(f"Starting training on {device}...")
     train_losses, valid_losses, valid_metrics, test_best = train(

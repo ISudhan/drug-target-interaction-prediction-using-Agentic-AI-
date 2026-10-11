@@ -16,9 +16,10 @@ from configs.biosnap import BIOSNAPConfig
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Test GNNBlockDTI model on preprocessed BIOSNAP data")
+    parser = argparse.ArgumentParser(description="Test GNNBlockDTI model on preprocessed data")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to model checkpoint")
     parser.add_argument("--task", type=str, default="BIOSNAP", help="Dataset/Task name")
+    parser.add_argument("--split", type=str, default="random", choices=["random", "unseen_drug", "unseen_target", "cross_dataset"], help="Data split to use")
     parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold (0-4) to use for test split")
     parser.add_argument("--device", type=str, default=None, help="Device to use (cuda/cpu)")
     parser.add_argument("--data_dir", type=str, default=None, help="Path to dataset directory")
@@ -43,15 +44,44 @@ def main():
         print(f"Error loading features: {e}. Please run preprocessing first.")
         sys.exit(1)
 
-    print(f"Loading CV fold {args.fold} test split...")
-    cv_path = os.path.join(data_dir, "random_CV5", f"data_CV{args.fold}.pkl")
-    try:
-        with open(cv_path, 'rb') as f:
-            data = pickle.load(f)
-        _, _, test_data = data  # We only need the test split
-    except FileNotFoundError as e:
-        print(f"Error loading fold data: {e}")
-        sys.exit(1)
+    print(f"Loading {args.split} test split...")
+    if args.split == "random":
+        cv_path = os.path.join(data_dir, "random_CV5", f"data_CV{args.fold}.pkl")
+        try:
+            with open(cv_path, 'rb') as f:
+                data = pickle.load(f)
+            _, _, test_data = data  # We only need the test split
+        except FileNotFoundError as e:
+            print(f"Error loading fold data: {e}")
+            sys.exit(1)
+    elif args.split == "unseen_drug":
+        path = os.path.join(data_dir, "full_data_unseen_D.pkl")
+        try:
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            _, _, test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading unseen drug data: {e}")
+            sys.exit(1)
+    elif args.split == "unseen_target":
+        path = os.path.join(data_dir, "full_data_unseen_T.pkl")
+        try:
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            _, _, test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading unseen target data: {e}")
+            sys.exit(1)
+    elif args.split == "cross_dataset":
+        path = os.path.join(data_dir, "full_data.pkl")
+        try:
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            # For cross-dataset, the entire target dataset is used as the test set
+            test_data = data
+        except FileNotFoundError as e:
+            print(f"Error loading cross-dataset data: {e}")
+            sys.exit(1)
         
     print(f"Test samples: {len(test_data)}")
     

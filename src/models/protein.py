@@ -92,18 +92,13 @@ class MultiscaleCNN(nn.Module):
         X = X.permute(0, 2, 1)  # [batch, embed_dim, seq_len] for Conv1d
         
         # Branch 1
-        X1 = self.cnn1(X)
-        X1 = self.relu(X1)
+        X1 = self.relu(self.cnn1(X))
         
-        # Branch 2 (sequential over Branch 1 output in official code, not parallel)
-        # Note: Code actually chains them sequentially X -> X1 -> X2 -> X3, 
-        # but the paper diagram shows a cascade/parallel structure. We follow code.
-        X2 = self.cnn2(X1)
-        X2 = self.relu(X2)
+        # Branch 2 (sequential)
+        X2 = self.relu(self.cnn2(X1))
         
-        # Branch 3
-        X3 = self.cnn3(X2)
-        X3 = self.relu(X3)
+        # Branch 3 (sequential)
+        X3 = self.relu(self.cnn3(X2))
 
         # Map back and pass through FC
         X1 = self.fc1(X1.permute(0, 2, 1))
